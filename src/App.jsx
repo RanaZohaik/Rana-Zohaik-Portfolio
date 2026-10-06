@@ -55,6 +55,8 @@ export default function App() {
 
   // Continuous 1-Second Auto-Slide Project Carousel State
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [cardStep, setCardStep] = useState(440);
+  const firstCardRef = useRef(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showResumeModal, setShowResumeModal] = useState(false);
 
@@ -115,6 +117,24 @@ export default function App() {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Dynamically Measure Card Width + Gap for Perfect Responsiveness
+  useEffect(() => {
+    const updateStep = () => {
+      if (firstCardRef.current) {
+        const rect = firstCardRef.current.getBoundingClientRect();
+        const gap = window.innerWidth <= 768 ? 20 : 32;
+        setCardStep(rect.width + gap);
+      }
+    };
+    updateStep();
+    const timer = setTimeout(updateStep, 150);
+    window.addEventListener("resize", updateStep);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateStep);
+    };
   }, []);
 
   // Projects Data with Real Pictures
@@ -624,12 +644,13 @@ export default function App() {
                 <div
                   className="projects__track"
                   style={{
-                    transform: `translateX(-${currentSlide * 440}px)`,
+                    transform: `translateX(-${currentSlide * cardStep}px)`,
                   }}
                 >
                   {projects.map((proj, pIdx) => (
                     <article
                       key={pIdx}
+                      ref={pIdx === 0 ? firstCardRef : null}
                       className="projects__card"
                       onClick={() => setSelectedProject(proj)}
                     >
