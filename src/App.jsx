@@ -1,89 +1,95 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ArrowUpRight, 
-  Menu, 
-  X, 
-  Mail, 
-  Smartphone, 
-  Terminal, 
-  Globe, 
-  Layers, 
+import Lenis from "lenis";
+import {
+  ArrowUpRight,
+  ArrowRight,
+  ChevronLeft,
   ChevronRight,
-  ExternalLink,
-  Copy,
-  Check,
-  Code2,
+  Briefcase,
+  GraduationCap,
+  Smartphone,
+  Monitor,
+  Globe,
   Database,
-  Cpu,
-  Sparkles,
-  ArrowDown
+  Check,
+  Menu,
+  X,
+  Mail,
+  Send,
+  Download,
+  ExternalLink,
+  Eye,
+  ArrowUp
 } from "lucide-react";
+import {
+  RiBriefcase3Line,
+  RiGraduationCapLine,
+  RiArrowRightUpLine,
+  RiLinkedinFill,
+  RiGithubLine,
+  RiWhatsappLine,
+  RiMailLine
+} from "react-icons/ri";
+
+// Cutout & Story Portraits
 import heroSuitPortrait from "./assets/rana-portrait.png";
 import storyLoungePortrait from "./assets/img1.png";
+
+// Generated High-Res Project Thumbnail Images
+import project1Thumbnail from "./assets/projects/project-1.png";
+import project2Thumbnail from "./assets/projects/project-2.png";
+import project3Thumbnail from "./assets/projects/project-3.png";
+import project4Thumbnail from "./assets/projects/project-4.png";
+import project5Thumbnail from "./assets/projects/project-5.png";
+import project6Thumbnail from "./assets/projects/project-6.png";
+
 import "./App.css";
-
-// SVG Brand Icons
-function GithubIcon({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-      <path d="M9 18c-4.51 2-5-2-7-2" />
-    </svg>
-  );
-}
-
-function LinkedinIcon({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-      <rect x="2" y="9" width="4" height="12" />
-      <circle cx="4" cy="4" r="2" />
-    </svg>
-  );
-}
-
-function InstagramIcon({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-    </svg>
-  );
-}
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const [heroParallax, setHeroParallax] = useState({ x: 0, y: 0 });
-  const [heroTextMode, setHeroTextMode] = useState("name"); // "name" | "portfolio"
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [copiedEmail, setCopiedEmail] = useState(false);
-  const [currentTime, setCurrentTime] = useState("");
+  const [activeWorkTab, setActiveWorkTab] = useState("experience"); // "experience" | "education"
 
-  // Clock in PKT (Pakistan Standard Time UTC+5)
+  // Continuous 1-Second Auto-Slide Project Carousel State
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+
+  // Contact Form State (Direct Delivery to zohaik.muhammad@gmail.com)
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(""); // "" | "success" | "error"
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
+  const carouselRef = useRef(null);
+
+  // Initialize Lenis Smooth Scrolling
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const options = {
-        timeZone: "Asia/Karachi",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      };
-      setCurrentTime(new Intl.DateTimeFormat("en-US", options).format(now));
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    const animId = requestAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(animId);
+      lenis.destroy();
     };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
   }, []);
 
+  // Mouse Parallax & Navigation Scroll Listener
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40);
+      setScrolled(window.scrollY > 30);
     };
 
     const handleMouseMove = (e) => {
@@ -91,7 +97,7 @@ export default function App() {
       const { innerWidth, innerHeight } = window;
       const offsetX = (e.clientX - innerWidth / 2) / (innerWidth / 2);
       const offsetY = (e.clientY - innerHeight / 2) / (innerHeight / 2);
-      setHeroParallax({ x: offsetX * 14, y: offsetY * 8 });
+      setHeroParallax({ x: offsetX * 12, y: offsetY * 7 });
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -102,176 +108,238 @@ export default function App() {
     };
   }, []);
 
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText("zohaik.muhammad@gmail.com");
-    setCopiedEmail(true);
-    setTimeout(() => setCopiedEmail(false), 2500);
-  };
+  // Continuous 1-Second Looping Slideshow (Never Stops)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % projects.length);
+    }, 1000);
 
-  const featurePillars = [
+    return () => clearInterval(timer);
+  }, []);
+
+  // Projects Data with Real Pictures
+  const projects = [
     {
       num: "01",
-      icon: <Smartphone size={22} />,
-      title: "MOBILE ENGINEERING",
-      subtitle: "Flutter & React Native",
-      desc: "Architecting buttery 60fps cross-platform iOS & Android mobile apps with Riverpod & clean domain state control.",
+      category: "Mobile",
+      title: "Fixio - Rental & Marketplace",
+      techstack: "Flutter, Dart, Firebase, Cloud Firestore, Riverpod, Google Maps",
+      desc: "Comprehensive mobile rental and commerce marketplace enabling users to browse, list, and rent heavy tools and consumer equipment with real-time Firestore sync and localized discovery.",
+      thumbnail: project1Thumbnail,
+      features: [
+        "Real-time rental equipment catalog & availability",
+        "Instant user-to-owner in-app messaging & alerts",
+        "Secure Firebase authentication & image storage",
+        "Geolocation-based item search & distance filters",
+      ],
+      githubUrl: "https://github.com/RanaZohaik",
     },
     {
       num: "02",
-      icon: <Terminal size={22} />,
-      title: "BACKENDS & RESILIENT APIS",
-      subtitle: "Laravel & ASP.NET Core",
-      desc: "Designing high-throughput microservices, hardened authentication gateways, and optimized relational database schemas.",
+      category: "POS Software",
+      title: "AR Shanwari Restaurant POS",
+      techstack: "React JS, Electron, Express, SQLite, Thermal Printing, Tailwind CSS",
+      desc: "Enterprise desktop point-of-sale and kitchen order management system built for high-volume restaurant operations, local offline-first transactions, and multi-printer dispatch.",
+      thumbnail: project2Thumbnail,
+      features: [
+        "Zero-downtime offline transactions with embedded SQLite",
+        "Automatic thermal kitchen ticket routing by prep station",
+        "Daily cashier shift summaries and revenue audit ledgers",
+        "Streamlined order processing time by over 40%",
+      ],
+      githubUrl: "https://github.com/RanaZohaik",
     },
     {
       num: "03",
-      icon: <Globe size={22} />,
-      title: "FULL-STACK & DESKTOP POS",
-      subtitle: "React & Electron Systems",
-      desc: "Engineering zero-latency local-first desktop POS applications, real-time inventory ledgers, and reactive web interfaces.",
+      category: "Web",
+      title: "Learning Management System",
+      techstack: "ASP.NET Core MVC, C#, SQL Server, Bootstrap, Entity Framework Core",
+      desc: "Robust web-based university management system for handling academic records, student enrollment, course rosters, instructor evaluations, and institutional metrics.",
+      thumbnail: project3Thumbnail,
+      features: [
+        "Role-based authentication (Admin, Instructor, Student)",
+        "Normalized relational database schemas on SQL Server",
+        "Course grading ledgers, assignment uploads & reports",
+        "Dynamic curriculum scheduling with audit trails",
+      ],
+      githubUrl: "https://github.com/RanaZohaik",
     },
     {
       num: "04",
-      icon: <Layers size={22} />,
-      title: "REAL-TIME TELEMETRY",
-      subtitle: "Firestore & Cloud Sync",
-      desc: "Live GPS driver dispatch, sub-second WebSocket / Firebase feeds, transactional payment pipelines, and cloud triggers.",
-    },
-  ];
-
-  const projects = [
-    {
-      id: "01",
-      edition: "MARKETPLACE ECOSYSTEM",
-      title: "FIXIO",
-      subtitle: "Multi-Category Rental & Commerce Platform",
-      metric: "Real-time Telemetry & Search",
-      desc: "A mission-critical mobile marketplace allowing users to rent, list, and buy tools, heavy equipment, and consumer electronics with instant Firestore sync and localized discovery.",
-      architecture: "Clean Architecture + Feature-First Flutter Layering",
-      challenges: [
-        "Architected optimistic UI updates ensuring zero perceived latency during inventory search.",
-        "Integrated dynamic rental duration calculations, security deposit holds, and user rating feeds.",
-        "Implemented real-time Firestore query caching for instant mobile reload with minimal battery overhead."
+      category: "Mobile",
+      title: "STB Courier & Driver Dispatch",
+      techstack: "Flutter, Dart, Laravel Backend, Google Maps API, WebSockets",
+      desc: "High-performance on-demand logistics dispatch application featuring live GPS driver route telemetry, job acceptance queues, passenger state synchronization, and push alerts.",
+      thumbnail: project4Thumbnail,
+      features: [
+        "Background GPS location beacon with bearing rotation",
+        "Real-time socket job broadcast and instant driver bidding",
+        "Automated fare calculation & multi-stop route guidance",
+        "Sub-second websocket order state reconciliation",
       ],
-      tags: ["Flutter", "Dart", "Firebase", "Firestore", "Cloud Functions", "Riverpod"],
       githubUrl: "https://github.com/RanaZohaik",
     },
     {
-      id: "02",
-      edition: "ENTERPRISE DESKTOP POS",
-      title: "AR SHANWARI HUJRA",
-      subtitle: "Offline-First Restaurant POS & Inventory Engine",
-      metric: "40% Quicker Order Processing",
-      desc: "A high-volume enterprise desktop and local-network POS application engineered for continuous operations, cashier shifts, automated thermal kitchen printing, and SQLite persistence.",
-      architecture: "Electron + React Desktop Client with Express Local Daemon",
-      challenges: [
-        "Guaranteed 100% offline uptime with local SQLite storage so cashiers never experience network pauses.",
-        "Engineered automated kitchen ticket routing separating grill, tandoor, and beverage orders.",
-        "Automated daily reconciliation ledgers and multi-tier manager access tokens."
+      num: "05",
+      category: "Software",
+      title: "Retail Inventory Management",
+      techstack: "SQL Server, Database Management, C#, Stored Procedures, WinForms",
+      desc: "Desktop inventory control and supply ledger software engineered to track product stock levels, sales velocity, supplier restock thresholds, and automated ledger reporting.",
+      thumbnail: project5Thumbnail,
+      features: [
+        "Barcode / SKU stock entry and automated restock alerts",
+        "Optimized SQL Server stored procedures for rapid lookups",
+        "Sales record archives and daily profitability analysis",
+        "Multi-warehouse tracking and vendor invoice management",
       ],
-      tags: ["React", "Electron", "Express.js", "SQLite", "Tailwind CSS", "Node.js"],
       githubUrl: "https://github.com/RanaZohaik",
     },
     {
-      id: "03",
-      edition: "FLEET DISPATCH SYSTEM",
-      title: "STB DRIVER",
-      subtitle: "On-Demand Logistics & Live Dispatch Telemetry",
-      metric: "Sub-Second Route Sync",
-      desc: "A high-performance courier dispatch application featuring real-time GPS route telemetry, job acceptance queues, passenger state synchronization, and scalable RESTful API endpoints.",
-      architecture: "Riverpod Reactive State + Laravel Backend Worker Queues",
-      challenges: [
-        "Maintained uninterrupted background location tracking with smooth bearing animations on Flutter maps.",
-        "Engineered a resilient job dispatch queue handling concurrent rider bids with zero collision.",
-        "Integrated push notification alerts with deep linking directly into active delivery tickets."
+      num: "06",
+      category: "System",
+      title: "Admission Workflow Optimization",
+      techstack: "BPMN 2.0, Process Analysis, Administrative Systems Modeling",
+      desc: "Modeled, analyzed, and re-engineered the administrative university admission workflow using BPMN methodology, eliminating paper-based bottlenecks and achieving 70% process efficiency.",
+      thumbnail: project6Thumbnail,
+      features: [
+        "Complete end-to-end process mapping from application to matriculation",
+        "Identified key bureaucratic delays and designed automated stages",
+        "Achieved documented 70% turnaround time improvement",
+        "Standardized operational guidelines for departmental faculty",
       ],
-      tags: ["Flutter", "Riverpod", "Laravel", "MySQL", "Google Maps API", "WebSockets"],
       githubUrl: "https://github.com/RanaZohaik",
     },
   ];
 
-  const experienceData = [
+  // Work Experience Data (From CV)
+  const workExperience = [
     {
-      id: "01",
       role: "Mobile Application Developer",
       company: "Astapor Technologies",
-      period: "2026 — PRESENT",
-      type: "Full-Time / Contract",
-      location: "Remote / Hybrid",
-      summary:
-        "Architecting cross-platform mobile solutions with Flutter and React Native. Spearheading clean Riverpod state patterns, offline-first caching routines, and seamless REST/GraphQL API integration.",
-      highlights: [
-        "Delivered production Flutter applications with sub-second cold starts and buttery 60fps animations.",
-        "Integrated secure token authentication, payment SDKs, and push notification gateways.",
-        "Standardized repository codebases with automated linting, unit testing, and Git flow best practices."
-      ],
-      skills: ["Flutter", "Dart", "React Native", "Riverpod", "REST APIs", "Git", "CI/CD"],
+      year: "Sep-\nPresent 26",
+      description:
+        "Developing cross-platform mobile applications using React Native. Building core features, integrating RESTful backend APIs, debugging performance bottlenecks, and improving mobile application responsiveness across iOS and Android.",
     },
     {
-      id: "02",
-      role: "Software Developer & Systems Lead",
+      role: "Manager & Software Developer",
       company: "AR Shanwari Hujra",
-      period: "2026",
-      type: "Lead / Enterprise",
-      location: "On-Site / Enterprise",
-      summary:
-        "Designed and engineered the enterprise point-of-sale, inventory control, and staff workflow platform. Led developer operations while directly modernizing floor and cashier processes.",
-      highlights: [
-        "Engineered a local Electron & React POS running embedded SQLite for zero-downtime offline transactions.",
-        "Streamlined order processing throughput by 40% and eliminated end-of-day revenue reconciliation discrepancies.",
-        "Configured multi-terminal thermal printing networks for instant kitchen order dispatch."
-      ],
-      skills: ["React", "Electron", "Express.js", "SQLite", "System Architecture", "Leadership"],
+      year: "June-\nSep- 26",
+      description:
+        "Managed daily restaurant operations, including staff coordination, customer service, order management, and overall workflow. Designed and developed a customized POS system for restaurant operations and developed a mobile application to improve ordering, management, and customer experience.",
     },
     {
-      id: "03",
-      role: "Mobile Development Intern",
-      company: "Techno Fortress",
-      period: "2025 — 2026",
-      type: "Internship",
-      location: "On-Site",
-      summary:
-        "Collaborated with senior engineering squads on client-facing mobile applications, automated regression testing, and agile sprint deliveries.",
-      highlights: [
-        "Authored modular UI widgets and API client services for commercial client applications.",
-        "Assisted in debugging state management issues and memory leaks across low-spec Android devices.",
-        "Sharpened expertise in industry-standard code review cycles and production deployment pipelines."
-      ],
-      skills: ["Flutter", "Dart", "Firebase", "API Integration", "Agile / Scrum"],
+      role: "Flutter & Backend Intern",
+      company: "Techno Fortress Software House",
+      year: "Nov-\nMay- 26",
+      description:
+        "Developed mobile application features using Flutter and Dart, integrating Firebase for authentication and database management. Assisted in Laravel backend development and API integration, debugging software issues and supporting the development of real-world applications.",
+    },
+    {
+      role: "Teacher",
+      company: "Fatima Public School",
+      year: "June-\nAug- 24",
+      description:
+        "Taught secondary-level students, delivering lessons, explaining core computer and STEM concepts, and supporting students in their academic development. Managed classroom activities, prepared learning materials, and maintained an effective, organized learning environment.",
     },
   ];
 
-  const technicalArsenal = [
+  // Education Section (Exactly as requested: only BS in Software Engineering)
+  const educationExperience = [
     {
-      category: "MOBILE ECOSYSTEM",
-      icon: <Smartphone size={18} />,
-      items: ["Flutter", "Dart", "React Native", "Riverpod", "Bloc", "Native Android/iOS Bridge", "Offline Cache Sync"],
-    },
-    {
-      category: "BACKEND & DISTRIBUTED APIS",
-      icon: <Terminal size={18} />,
-      items: ["Laravel", "ASP.NET Core", "Express.js", "RESTful Architecture", "JWT Auth", "Microservices"],
-    },
-    {
-      category: "DATABASES & CLOUD",
-      icon: <Database size={18} />,
-      items: ["Firebase", "Firestore", "SQLite", "MySQL", "Cloud Functions", "Push Notifications"],
-    },
-    {
-      category: "WEB & DESKTOP PLATFORMS",
-      icon: <Code2 size={18} />,
-      items: ["React 19", "Electron", "JavaScript / ES6+", "Vite", "Tailwind CSS", "HTML5 & CSS3"],
+      role: "BS in Software Engineering",
+      company: "University of Gujrat (UOG)",
+      year: "2022-\n2026",
+      description:
+        "Earned a Bachelor of Science in Software Engineering with a Cumulative GPA of 3.12. Focused on mobile application engineering, object-oriented software design, relational database systems, and full-stack software development methodologies.",
     },
   ];
+
+  // Skills Categories
+  const skillsCategories = [
+    {
+      title: "Mobile Development",
+      icon: <Smartphone size={20} />,
+      items: ["Flutter", "Dart", "React Native", "Firebase", "Riverpod", "Android Studio", "Xcode", "REST APIs"],
+    },
+    {
+      title: "Desktop & POS Systems",
+      icon: <Monitor size={20} />,
+      items: ["Desktop POS", "Electron", "SQLite", "Thermal Printing", "Hardware Interfacing", "Offline Persistence"],
+    },
+    {
+      title: "Web & Full-Stack",
+      icon: <Globe size={20} />,
+      items: ["React JS", "ASP.NET Core MVC", "C#", "Node.js", "Tailwind CSS", "Bootstrap", "HTML5 & CSS3"],
+    },
+    {
+      title: "Databases & Tools",
+      icon: <Database size={20} />,
+      items: ["SQL Server", "MySQL", "SQLite", "Cloud Firestore", "Git", "GitHub", "VS Code", "Postman", "BPMN"],
+    },
+  ];
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % projects.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + projects.length) % projects.length);
+  };
+
+  const copyEmail = () => {
+    navigator.clipboard.writeText("zohaik.muhammad@gmail.com");
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
+  };
+
+  // Direct Gmail Dispatch Function
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // Dispatches directly to zohaik.muhammad@gmail.com via FormSubmit endpoint
+      const response = await fetch("https://formsubmit.co/ajax/zohaik.muhammad@gmail.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          _subject: `Portfolio Message from ${formData.name}`,
+          _template: "table",
+        }),
+      });
+
+      if (response.ok) {
+        setSubmitStatus("success");
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        // Fallback: Open mailto with filled details directly
+        window.location.href = `mailto:zohaik.muhammad@gmail.com?subject=Portfolio%20Inquiry%20from%20${encodeURIComponent(formData.name)}&body=${encodeURIComponent(formData.message)}%0A%0AFrom:%20${encodeURIComponent(formData.name)}%20(${encodeURIComponent(formData.email)})`;
+        setSubmitStatus("success");
+      }
+    } catch (err) {
+      // Fallback
+      window.location.href = `mailto:zohaik.muhammad@gmail.com?subject=Portfolio%20Inquiry%20from%20${encodeURIComponent(formData.name)}&body=${encodeURIComponent(formData.message)}%0A%0AFrom:%20${encodeURIComponent(formData.name)}%20(${encodeURIComponent(formData.email)})`;
+      setSubmitStatus("success");
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setSubmitStatus(""), 6000);
+    }
+  };
 
   return (
     <>
-      {/* Subtle Cinematic Film Grain Texture */}
+      {/* Subtle film grain texture */}
       <div className="film-grain" />
 
-      {/* Atmospheric Cursor Light Glow */}
+      {/* Ambient cursor radial light */}
       <div
-        className="cursor-atmospheric-light"
+        className="cursor-light"
         style={{
           left: `${mousePos.x}px`,
           top: `${mousePos.y}px`,
@@ -279,44 +347,64 @@ export default function App() {
       />
 
       {/* ============================================================
-          TOP NAVIGATION BAR (Ultra-Clean Luxury Editorial)
+          TOP NAVIGATION BAR (Clean, Responsive & Focused)
           ============================================================ */}
-      <header className={`cinema-nav ${scrolled ? "cinema-nav-scrolled" : ""}`}>
-        <a href="#hero" className="cinema-brand">
-          <span className="brand-dot" />
-          <span className="brand-name">RANA ZOHAIK</span>
-          <span className="brand-badge">EDITION '26</span>
-        </a>
-
-        <nav className="cinema-nav-links">
-          <a href="#hero" className="cinema-nav-link">Overview</a>
-          <a href="#about" className="cinema-nav-link">About</a>
-          <a href="#work" className="cinema-nav-link">Selected Works</a>
-          <a href="#experience" className="cinema-nav-link">Trajectory</a>
-          <a href="#contact" className="cinema-nav-link">Contact</a>
-        </nav>
-
-        <div className="cinema-nav-right">
-          <div className="nav-time-badge" title="Pakistan Standard Time">
-            <span className="live-clock-dot" />
-            <span className="clock-digits">{currentTime || "PKT UTC+5"}</span>
-          </div>
-
-          <a href="#contact" className="nav-cta-btn">
-            Let's Talk <ArrowUpRight size={14} />
+      <header className={`header ${scrolled ? "header-scrolled" : ""}`}>
+        <div className="container nav">
+          {/* Brand Logo */}
+          <a href="#hero" className="nav__logo">
+            <span className="nav__logo-dot" />
+            Rana Zohaik
+            <span className="nav__logo-badge">SE '26</span>
           </a>
 
+          {/* Clean Focused Navigation Links */}
+          <div className="nav__menu">
+            <ul className="nav__list">
+              <li>
+                <a href="#hero" className="nav__link">Overview</a>
+              </li>
+              <li>
+                <a href="#about" className="nav__link">About</a>
+              </li>
+              <li>
+                <a href="#projects" className="nav__link">Projects</a>
+              </li>
+              <li>
+                <a href="#work" className="nav__link">Experience</a>
+              </li>
+              <li>
+                <a href="#contact" className="nav__link">Contact</a>
+              </li>
+            </ul>
+
+            {/* Action Buttons: Resume & Let's Talk */}
+            <div className="nav__actions">
+              <button
+                onClick={() => setShowResumeModal(true)}
+                className="button button-secondary nav__btn"
+                title="View & Download CV"
+              >
+                <Eye size={14} /> Resume
+              </button>
+              <a href="#contact" className="button nav__btn">
+                Let's Talk <ArrowUpRight size={14} />
+              </a>
+            </div>
+          </div>
+
+          {/* Mobile Hamburger Toggle */}
           <button
-            className="cinema-menu-btn"
-            aria-label="Toggle Menu"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="nav__mobile-toggle"
+            aria-label="Toggle navigation"
+            onClick={() => setMobileMenuOpen(true)}
           >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            <Menu size={24} />
           </button>
         </div>
       </header>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Navigation Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -326,22 +414,45 @@ export default function App() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.25 }}
           >
-            <div className="mobile-drawer-header">
-              <span className="mobile-drawer-title">NAVIGATION</span>
-              <button onClick={() => setMobileMenuOpen(false)} className="mobile-close-btn">
-                <X size={22} />
+            <div className="mobile-nav-top">
+              <div className="nav__logo">
+                <span className="nav__logo-dot" /> Rana Zohaik
+              </div>
+              <button
+                className="nav__mobile-toggle"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <X size={26} />
               </button>
             </div>
-            <a href="#hero" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>01 // Overview</a>
-            <a href="#about" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>02 // Philosophy & About</a>
-            <a href="#work" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>03 // Selected Works</a>
-            <a href="#experience" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>04 // Trajectory & Experience</a>
-            <a href="#contact" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>05 // Get In Touch</a>
-            <div className="mobile-socials-row">
-              <a href="https://github.com/RanaZohaik" target="_blank" rel="noreferrer"><GithubIcon size={20} /></a>
-              <a href="https://www.linkedin.com/in/muhammad-zohaik-069553373/" target="_blank" rel="noreferrer"><LinkedinIcon size={20} /></a>
-              <a href="https://www.instagram.com/zohaikrana/" target="_blank" rel="noreferrer"><InstagramIcon size={20} /></a>
-              <a href="mailto:zohaik.muhammad@gmail.com"><Mail size={20} /></a>
+
+            <div className="mobile-nav-links">
+              <a href="#hero" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>01 // Overview</a>
+              <a href="#about" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>02 // About</a>
+              <a href="#projects" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>03 // Projects</a>
+              <a href="#work" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>04 // Experience</a>
+              <a href="#contact" className="mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>05 // Contact</a>
+            </div>
+
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setShowResumeModal(true);
+                }}
+                className="button button-secondary"
+                style={{ flex: 1 }}
+              >
+                <Eye size={15} /> Resume
+              </button>
+              <a
+                href="#contact"
+                className="button"
+                style={{ flex: 1 }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Let's Talk
+              </a>
             </div>
           </motion.div>
         )}
@@ -349,13 +460,11 @@ export default function App() {
 
       <main>
         {/* ============================================================
-            HERO SECTION — EXACT EDITORIAL ARCHITECTURE FROM REFERENCE
-            (Rounded Editorial Card, Cutout Subject, Background Cream Typography,
-             and Foreground Stroke Outline Crossing Subject)
+            HERO SECTION — "RANA ZOHAIK" 3D EDITORIAL TYPOGRAPHY
             ============================================================ */}
-        <section id="hero" className="editorial-hero-wrapper">
+        <section id="hero" className="editorial-hero-wrapper container">
           <div className="editorial-hero-card">
-            {/* Atmospheric Backlight / Ambient Warm Aura */}
+            {/* Ambient warm glow in center */}
             <div
               className="hero-warm-glow"
               style={{
@@ -363,49 +472,30 @@ export default function App() {
               }}
             />
 
-            {/* Top Bar (Exact composition like reference: Top-Left role tag, Top-Right slender arrow) */}
+            {/* Top Bar: Role on Left, Arrow Link on Right */}
             <div className="hero-card-top-bar">
-              <div className="hero-role-pill">
-                <span className="hero-role-dot" />
-                <span className="hero-role-text">MOBILE & FULL-STACK ARCHITECT</span>
-              </div>
+              <span className="hero-role-title">Software Engineer & Mobile Architect</span>
 
-              {/* Title Mode Switcher: Click to switch between 'RANA ZOHAIK' and 'PORTFOLIO' */}
-              <div className="hero-title-toggle-pill" title="Toggle Hero Display Word">
-                <button
-                  type="button"
-                  className={`toggle-btn ${heroTextMode === "name" ? "active" : ""}`}
-                  onClick={() => setHeroTextMode("name")}
-                >
-                  RANA ZOHAIK
-                </button>
-                <span className="toggle-separator">/</span>
-                <button
-                  type="button"
-                  className={`toggle-btn ${heroTextMode === "portfolio" ? "active" : ""}`}
-                  onClick={() => setHeroTextMode("portfolio")}
-                >
-                  PORTFOLIO
-                </button>
-              </div>
-
-              <a href="#contact" className="hero-top-arrow-btn" aria-label="Explore or Connect" title="Connect Directly">
-                <span className="arrow-caption">CONNECT</span>
-                <span className="arrow-symbol">⟶</span>
+              <a
+                href="#projects"
+                className="hero-top-arrow-btn"
+                title="Explore Projects"
+              >
+                <ArrowRight size={24} />
               </a>
             </div>
 
-            {/* Centerpiece 3D Depth Stage */}
+            {/* Centerpiece 3D Stage: Solid RANA ZOHAIK -> Cutout Portrait -> Stroke RANA ZOHAIK */}
             <div className="hero-centerpiece-stage">
-              {/* LAYER 1: Solid Cream Display Typography Behind Rana */}
+              {/* LAYER 1: Solid Bone Typography Layer Behind Subject */}
               <div
-                className="hero-typography-layer hero-solid-layer"
+                className="hero-typography-layer"
                 style={{
-                  transform: `translate(${heroParallax.x * -0.25}px, ${heroParallax.y * -0.15}px)`,
+                  transform: `translate(${heroParallax.x * -0.2}px, ${heroParallax.y * -0.1}px)`,
                 }}
               >
                 <h1 className="hero-giant-word">
-                  {heroTextMode === "name" ? "RANA ZOHAIK" : "PORTFOLIO"}
+                  RANA ZOHAIK
                 </h1>
               </div>
 
@@ -413,7 +503,7 @@ export default function App() {
               <div className="hero-subject-frame">
                 <img
                   src={heroSuitPortrait}
-                  alt="Rana Zohaik - Mobile & Full-Stack Developer"
+                  alt="Rana Zohaik"
                   className="hero-subject-img"
                   style={{
                     transform: `translate(${heroParallax.x * 0.35}px, ${heroParallax.y * 0.25}px)`,
@@ -421,522 +511,730 @@ export default function App() {
                 />
               </div>
 
-              {/* LAYER 3: Exact Stroke Outline Typography Over Rana (Creates the 3D pass-through outline effect!) */}
+              {/* LAYER 3: Stroke Typography Layer in Front of Subject */}
               <div
                 className="hero-typography-layer hero-stroke-layer"
-                aria-hidden="true"
                 style={{
-                  transform: `translate(${heroParallax.x * -0.25}px, ${heroParallax.y * -0.15}px)`,
+                  transform: `translate(${heroParallax.x * -0.2}px, ${heroParallax.y * -0.1}px)`,
                 }}
               >
                 <div className="hero-giant-word stroke-word">
-                  {heroTextMode === "name" ? "RANA ZOHAIK" : "PORTFOLIO"}
+                  RANA ZOHAIK
                 </div>
               </div>
 
-              {/* Bottom Blend Floor Gradient */}
+              {/* Floor blend */}
               <div className="hero-card-floor-blend" />
             </div>
 
-            {/* Bottom Bar (Exact like reference: Bottom-Left name, Bottom-Right availability) */}
+            {/* Bottom Bar: Name on Left, Location / Status on Right */}
             <div className="hero-card-bottom-bar">
-              <div className="hero-author-identity">
-                <span className="author-name">Rana Zohaik</span>
-                <span className="author-subtext">Software Engineer • Lahore, PK</span>
-              </div>
+              <span className="hero-bottom-author">Rana Zohaik</span>
 
-              <a href="#about" className="hero-scroll-prompt">
-                <span className="scroll-arrow-icon">↓</span>
-                <span className="scroll-prompt-text">EXPLORE DOSSIER</span>
-              </a>
-
-              <div className="hero-status-pill">
-                <span className="status-live-beacon" />
-                <span className="status-label">OPEN FOR WORLDWIDE CONTRACTS</span>
+              <div className="hero-bottom-meta">
+                <span className="hero-status-dot" />
+                <span>SIALKOT / GUJRAT, PK • EDITION '26</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* ============================================================
-            CONTINUOUS LUXURY MARQUEE TICKER
+            ABOUT ME SECTION
             ============================================================ */}
-        <section className="luxury-ticker-strip">
-          <div className="ticker-track">
-            <div className="ticker-content">
-              <span>CROSS-PLATFORM MOBILE (FLUTTER & REACT NATIVE)</span>
-              <span className="ticker-star">✦</span>
-              <span>ENTERPRISE POS SYSTEMS (REACT & ELECTRON)</span>
-              <span className="ticker-star">✦</span>
-              <span>RESILIENT BACKENDS (LARAVEL & ASP.NET CORE)</span>
-              <span className="ticker-star">✦</span>
-              <span>REAL-TIME TELEMETRY & CLOUD FUNCTIONS</span>
-              <span className="ticker-star">✦</span>
-              <span>RIVERPOD & CLEAN ARCHITECTURE</span>
-              <span className="ticker-star">✦</span>
-            </div>
-            <div className="ticker-content" aria-hidden="true">
-              <span>CROSS-PLATFORM MOBILE (FLUTTER & REACT NATIVE)</span>
-              <span className="ticker-star">✦</span>
-              <span>ENTERPRISE POS SYSTEMS (REACT & ELECTRON)</span>
-              <span className="ticker-star">✦</span>
-              <span>RESILIENT BACKENDS (LARAVEL & ASP.NET CORE)</span>
-              <span className="ticker-star">✦</span>
-              <span>REAL-TIME TELEMETRY & CLOUD FUNCTIONS</span>
-              <span className="ticker-star">✦</span>
-              <span>RIVERPOD & CLEAN ARCHITECTURE</span>
-              <span className="ticker-star">✦</span>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================
-            FEATURE PILLARS / CAPABILITY QUADRANT
-            ============================================================ */}
-        <section className="pillars-section">
-          <div className="pillars-grid">
-            {featurePillars.map((pill) => (
-              <div key={pill.num} className="pillar-card">
-                <div className="pillar-header">
-                  <span className="pillar-number">{pill.num} // DOMAIN</span>
-                  <div className="pillar-icon-box">{pill.icon}</div>
-                </div>
-                <h3 className="pillar-title">{pill.title}</h3>
-                <div className="pillar-subtitle">{pill.subtitle}</div>
-                <p className="pillar-desc">{pill.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ============================================================
-            ABOUT / PHILOSOPHY SPREAD (Editorial Magazine Layout)
-            ============================================================ */}
-        <section id="about" className="editorial-about-section">
-          <div className="about-grid-spread">
-            <div className="about-narrative-col">
-              <div className="section-eyebrow">// PHILOSOPHY & CRAFT</div>
-              <h2 className="about-monumental-heading">
-                PRECISION.<br />
-                SCALE.<br />
-                CRAFTSMANSHIP.
-              </h2>
-              <p className="about-lead-para">
-                I am a Software Developer driven by a singular obsession: turning intricate business requirements into elegant, high-throughput software architectures.
-              </p>
-              <p className="about-secondary-para">
-                From sub-second cross-platform mobile apps engineered with Flutter and React Native to zero-downtime offline point-of-sale systems built with Electron and SQLite, I bridge the gap between aesthetic perfection and rock-solid system stability.
-              </p>
-
-              {/* Key Metrics Quadrant */}
-              <div className="about-stats-grid">
-                <div className="stat-card">
-                  <div className="stat-value">3+</div>
-                  <div className="stat-label">YEARS DEV EXPERIENCE</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">10+</div>
-                  <div className="stat-label">PRODUCTION RELEASES</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">60 FPS</div>
-                  <div className="stat-label">NATIVE FLUIDITY</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">99.9%</div>
-                  <div className="stat-label">UPTIME ARCHITECTURE</div>
-                </div>
-              </div>
-
-              {/* Action Link */}
-              <div style={{ marginTop: "2.5rem" }}>
-                <a href="#work" className="editorial-pill-btn">
-                  Explore Selected Works <ChevronRight size={16} />
-                </a>
-              </div>
-            </div>
-
-            <div className="about-portrait-col">
-              <div className="about-portrait-wrapper">
+        <section className="about section" id="about">
+          <div className="container about__container">
+            <div className="about__image-col">
+              <div className="about__image-frame">
                 <img
                   src={storyLoungePortrait}
-                  alt="Rana Zohaik in Studio"
-                  className="about-portrait-img"
+                  alt="Rana Zohaik"
+                  className="about__img"
                 />
-                <div className="portrait-corner-badge">
-                  <span className="badge-coords">31.5204° N, 74.3587° E</span>
-                  <span className="badge-role">RANA ZOHAIK — DEVELOPER</span>
+              </div>
+            </div>
+
+            <div className="about__content">
+              <span className="about__subtitle">Creativity & Engineering</span>
+              <h2 className="about__heading">
+                Building Reliable, High-Impact <span className="text-bone">Software</span>
+              </h2>
+
+              <p className="about__text">
+                Software Engineering graduate from the <strong>University of Gujrat</strong> (CGPA 3.12) with hands-on professional experience in cross-platform mobile app development, customized enterprise POS systems, and database-driven web platforms.
+              </p>
+
+              <p className="about__text">
+                From engineering Flutter and React Native apps at <strong>Astapor Technologies</strong> to building zero-latency restaurant POS solutions at <strong>AR Shanwari Hujra</strong>, I focus on building reliable software with clean domain architectures.
+              </p>
+
+              <div className="about__stats-row">
+                <div className="about__stat-box">
+                  <div className="about__stat-num">3+</div>
+                  <div className="about__stat-label">Years Hands-On Dev</div>
                 </div>
+                <div className="about__stat-box">
+                  <div className="about__stat-num">6+</div>
+                  <div className="about__stat-label">Production Projects</div>
+                </div>
+                <div className="about__stat-box">
+                  <div className="about__stat-num">70%</div>
+                  <div className="about__stat-label">Workflow Optimization</div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <a href="#contact" className="button">
+                  Get In Touch <ArrowUpRight size={15} />
+                </a>
+                <button
+                  onClick={() => setShowResumeModal(true)}
+                  className="button button-secondary"
+                >
+                  View Full CV <Download size={15} />
+                </button>
               </div>
             </div>
           </div>
         </section>
 
         {/* ============================================================
-            TECHNICAL ARSENAL (Categorized Grid)
+            PROJECTS SECTION (Infinite 1-Second Looping Slideshow)
             ============================================================ */}
-        <section className="arsenal-section">
-          <div className="section-header-row">
-            <div>
-              <div className="section-eyebrow">// ARCHITECTURAL STACK</div>
-              <h2 className="section-monumental-title">TECHNICAL ARSENAL</h2>
-            </div>
-            <div className="section-meta-text">
-              PRODUCTION-HARDENED TOOLS & FRAMEWORKS
-            </div>
-          </div>
+        <section className="projects section" id="projects">
+          <div className="container">
+            {/* Top Glowing Orb & Heading */}
+            <div className="projects__header-wrap">
+              <div className="section-orb-glow" />
+              <h2 className="section__title">
+                I make Incredible <br />
+                <span>Projects</span>
+              </h2>
 
-          <div className="arsenal-grid">
-            {technicalArsenal.map((category, idx) => (
-              <div key={idx} className="arsenal-card">
-                <div className="arsenal-category-header">
-                  <div className="arsenal-icon-box">{category.icon}</div>
-                  <h3 className="arsenal-category-name">{category.category}</h3>
-                </div>
-                <div className="arsenal-tags-cloud">
-                  {category.items.map((tech) => (
-                    <span key={tech} className="arsenal-pill">
-                      {tech}
-                    </span>
+              {/* Automatic Slideshow Indicator Badge */}
+              <div className="projects__auto-pill">
+                <span className="projects__auto-dot" />
+                <span>1-SECOND INFINITE LOOPING SLIDESHOW</span>
+              </div>
+            </div>
+
+            {/* Continuous Carousel Container */}
+            <div className="projects__carousel-container">
+              <div className="projects__track-wrapper" ref={carouselRef}>
+                <div
+                  className="projects__track"
+                  style={{
+                    transform: `translateX(-${currentSlide * 440}px)`,
+                  }}
+                >
+                  {projects.map((proj, pIdx) => (
+                    <article
+                      key={pIdx}
+                      className="projects__card"
+                      onClick={() => setSelectedProject(proj)}
+                    >
+                      {/* Ambient card glow */}
+                      <div className="projects__card-ambient" />
+
+                      {/* Number & Category Pill */}
+                      <div className="projects__number">
+                        <h1>{proj.num}</h1>
+                        <h3>{proj.category}</h3>
+                      </div>
+
+                      {/* Project Data */}
+                      <div className="projects__data">
+                        <h2 className="projects__title">{proj.title}</h2>
+                        <p className="projects__subtitle">Techstack used</p>
+                        <p className="projects__description">{proj.techstack}</p>
+                      </div>
+
+                      {/* Real Picture Thumbnail */}
+                      <div className="projects__image">
+                        <img
+                          src={proj.thumbnail}
+                          alt={proj.title}
+                          className="projects__img"
+                        />
+
+                        {/* Floating Arrow button on top right of thumbnail */}
+                        <a
+                          href={proj.githubUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="projects__button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          title="View Repository / Demo"
+                        >
+                          <RiArrowRightUpLine />
+                        </a>
+                      </div>
+                    </article>
                   ))}
                 </div>
               </div>
-            ))}
+
+              {/* Slideshow Controls */}
+              <div className="projects__controls">
+                <button
+                  className="projects__arrow-btn"
+                  onClick={prevSlide}
+                  aria-label="Previous Project"
+                >
+                  <ChevronLeft size={22} />
+                </button>
+
+                <div className="projects__dots">
+                  {projects.map((_, dotIdx) => (
+                    <span
+                      key={dotIdx}
+                      className={`projects__dot ${currentSlide === dotIdx ? "active" : ""}`}
+                      onClick={() => setCurrentSlide(dotIdx)}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  className="projects__arrow-btn"
+                  onClick={nextSlide}
+                  aria-label="Next Project"
+                >
+                  <ChevronRight size={22} />
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* ============================================================
-            SELECTED WORKS (Featured Projects with Modal Case Studies)
+            WORK EXPERIENCE & EDUCATION SECTION
             ============================================================ */}
-        <section id="work" className="editorial-work-section">
-          <div className="section-header-row">
-            <div>
-              <div className="section-eyebrow">// CURATED DOSSIER</div>
-              <h2 className="section-monumental-title">SELECTED WORKS</h2>
+        <section className="work section" id="work">
+          <div className="container work__container">
+            <div style={{ textAlign: "center" }}>
+              <div className="section-orb-glow" />
+              <h2 className="section__title">
+                <span className="text-tobacco">My Work</span> <br />
+                Experience
+              </h2>
             </div>
-            <div className="section-meta-text">
-              ENTERPRISE & CONSUMER DELIVERABLES
+
+            {/* Tabs: Experience | Education */}
+            <div className="work__tabs">
+              <button
+                className={`work__button ${activeWorkTab === "experience" ? "work-active" : ""}`}
+                onClick={() => setActiveWorkTab("experience")}
+              >
+                Experience <RiBriefcase3Line size={16} />
+              </button>
+              <button
+                className={`work__button ${activeWorkTab === "education" ? "work-active" : ""}`}
+                onClick={() => setActiveWorkTab("education")}
+              >
+                Education <RiGraduationCapLine size={16} />
+              </button>
+            </div>
+
+            {/* Timeline Area with continuous vertical glowing timeline line */}
+            <div className="work__area">
+              <div className="work__line" />
+
+              <div className="work__content">
+                {(activeWorkTab === "experience" ? workExperience : educationExperience).map(
+                  (item, wIdx) => (
+                    <div key={wIdx} className="work__card">
+                      <div className="work__card-node" />
+
+                      {/* Left Side: Role Title, Company, and Year Badge */}
+                      <div className="work__data">
+                        <div>
+                          <h3 className="work__title">{item.role}</h3>
+                          <h4 className="work__subtitle">{item.company}</h4>
+                        </div>
+                        <h2
+                          className="work__year"
+                          style={{ whiteSpace: "pre-line" }}
+                        >
+                          {item.year}
+                        </h2>
+                      </div>
+
+                      {/* Right Side: Description */}
+                      <p className="work__description">{item.description}</p>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
           </div>
+        </section>
 
-          <div className="works-editorial-grid">
-            {projects.map((proj) => (
-              <div key={proj.id} className="work-editorial-card">
-                <div className="work-preview-banner">
-                  <div className="banner-grid-overlay" />
-                  <span className="work-edition-tag">{proj.edition}</span>
-                  <div className="work-watermark-title">{proj.title}</div>
-                  <div className="work-metric-pill">
-                    <Sparkles size={13} /> {proj.metric}
+        {/* ============================================================
+            TECHNICAL ARSENAL & SKILLS
+            ============================================================ */}
+        <section className="skills section" id="skills">
+          <div className="container">
+            <div className="section-orb-glow" />
+            <h2 className="section__title">
+              Technical <span>Arsenal</span>
+            </h2>
+
+            <div className="skills__grid">
+              {skillsCategories.map((cat, idx) => (
+                <div key={idx} className="skills__box">
+                  <div className="skills__box-header">
+                    {cat.icon}
+                    <h3 className="skills__box-title">{cat.title}</h3>
                   </div>
-                </div>
 
-                <div className="work-card-body">
-                  <div className="work-header-line">
-                    <span className="work-index-tag">{proj.id} // CASE STUDY</span>
-                    <h3 className="work-title">{proj.title}</h3>
-                  </div>
-
-                  <div className="work-subtitle">{proj.subtitle}</div>
-                  <p className="work-description">{proj.desc}</p>
-
-                  <div className="work-tags-row">
-                    {proj.tags.map((tag) => (
-                      <span key={tag} className="tech-badge-pill">
-                        {tag}
+                  <div className="skills__pill-list">
+                    {cat.items.map((skill, sIdx) => (
+                      <span key={sIdx} className="skills__badge">
+                        {skill}
                       </span>
                     ))}
                   </div>
-
-                  <div className="work-card-bottom-actions">
-                    <button
-                      type="button"
-                      className="case-study-open-btn"
-                      onClick={() => setSelectedProject(proj)}
-                    >
-                      View Case Study <ChevronRight size={15} />
-                    </button>
-                    <a
-                      href={proj.githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="work-external-icon-btn"
-                      title="GitHub Profile"
-                    >
-                      <GithubIcon size={16} />
-                    </a>
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
         {/* ============================================================
-            TRAJECTORY & EXPERIENCE SECTION
+            CONTACT SECTION (Direct Delivery to zohaik.muhammad@gmail.com)
             ============================================================ */}
-        <section id="experience" className="editorial-exp-section">
-          <div className="section-header-row">
-            <div>
-              <div className="section-eyebrow">// PROFESSIONAL CHRONOLOGY</div>
-              <h2 className="section-monumental-title">CAREER TRAJECTORY</h2>
-            </div>
-            <div className="section-meta-text">
-              ROLES, IMPACT & CONTRIBUTIONS
-            </div>
-          </div>
+        <section className="contact section" id="contact">
+          <div className="container">
+            <div className="section-orb-glow" />
+            <h2 className="section__title">
+              Tell me about your <span>next project</span>
+            </h2>
 
-          <div className="exp-timeline-flow">
-            {experienceData.map((exp) => (
-              <div key={exp.id} className="exp-timeline-card">
-                <div className="exp-card-top">
-                  <div>
-                    <span className="exp-id-pill">{exp.id} // APPOINTMENT</span>
-                    <h3 className="exp-role-title">{exp.role}</h3>
-                    <div className="exp-company-line">
-                      <span className="company-name">{exp.company}</span>
-                      <span className="bullet-sep">•</span>
-                      <span className="company-type">{exp.type}</span>
-                      <span className="bullet-sep">•</span>
-                      <span className="company-location">{exp.location}</span>
+            <div className="contact__container">
+              {/* Left Column: Direct Connect & Details */}
+              <div className="contact__info-card">
+                <div>
+                  <h3 className="contact__card-title">Let's build something exceptional.</h3>
+                  <p className="contact__card-desc">
+                    Send me a message below and it will be delivered directly to my inbox (<strong>zohaik.muhammad@gmail.com</strong>). You can also connect directly on WhatsApp or LinkedIn.
+                  </p>
+                </div>
+
+                <div className="contact__methods">
+                  <a
+                    href="https://wa.me/923275716901"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="contact__method-item"
+                  >
+                    <div className="contact__method-icon">
+                      <RiWhatsappLine />
+                    </div>
+                    <div>
+                      <div className="contact__method-label">Direct WhatsApp</div>
+                      <div className="contact__method-val">+92 327 5716901</div>
+                    </div>
+                  </a>
+
+                  <div
+                    className="contact__method-item"
+                    onClick={copyEmail}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div className="contact__method-icon">
+                      <RiMailLine />
+                    </div>
+                    <div>
+                      <div className="contact__method-label">Direct Email</div>
+                      <div className="contact__method-val">
+                        zohaik.muhammad@gmail.com {copiedEmail && "✓ (Copied!)"}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="exp-period-badge">
-                    {exp.period}
-                  </div>
-                </div>
-
-                <p className="exp-summary-text">{exp.summary}</p>
-
-                <div className="exp-achievements-box">
-                  <div className="achievements-label">DELIVERED IMPACT & TECHNICAL HIGHLIGHTS</div>
-                  <ul className="achievements-list">
-                    {exp.highlights.map((h, i) => (
-                      <li key={i} className="achievement-item">
-                        <span className="achievement-arrow">⟶</span>
-                        <span>{h}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="exp-skills-row">
-                  {exp.skills.map((s) => (
-                    <span key={s} className="exp-skill-tag">
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ============================================================
-            EDITORIAL FINALE & CONTACT (Luxury Closure)
-            ============================================================ */}
-        <section id="contact" className="editorial-contact-section">
-          <div className="contact-canvas">
-            <div className="section-eyebrow">// INITIATE CONTACT</div>
-            <h2 className="contact-giant-title">
-              LET'S BUILD<br />
-              EXTRAORDINARY.
-            </h2>
-            <p className="contact-subtext">
-              Whether you are architecting a high-performance cross-platform mobile application, an enterprise desktop POS, or a resilient backend service — let's bring it to life with world-class engineering.
-            </p>
-
-            {/* Direct Copyable Email Button */}
-            <div className="contact-primary-action-wrap">
-              <button
-                type="button"
-                className="copy-email-mega-btn"
-                onClick={handleCopyEmail}
-                title="Click to copy email address"
-              >
-                <span className="email-text">zohaik.muhammad@gmail.com</span>
-                <span className="copy-icon-wrap">
-                  {copiedEmail ? <Check size={18} color="#000" /> : <Copy size={18} />}
-                </span>
-              </button>
-
-              <AnimatePresence>
-                {copiedEmail && (
-                  <motion.div
-                    className="copied-toast"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                  <a
+                    href="https://www.linkedin.com/in/rana-zohaik-069553373/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="contact__method-item"
                   >
-                    COPIED TO CLIPBOARD ✓
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    <div className="contact__method-icon">
+                      <RiLinkedinFill />
+                    </div>
+                    <div>
+                      <div className="contact__method-label">LinkedIn Profile</div>
+                      <div className="contact__method-val">in/rana-zohaik-069553373</div>
+                    </div>
+                  </a>
 
-            {/* Social Channels Quadrant */}
-            <div className="contact-channels-grid">
-              <a
-                href="https://github.com/RanaZohaik"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="channel-card"
-              >
-                <div className="channel-icon-circle"><GithubIcon size={18} /></div>
-                <div>
-                  <div className="channel-name">GitHub</div>
-                  <div className="channel-handle">/RanaZohaik</div>
+                  <a
+                    href="https://github.com/RanaZohaik"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="contact__method-item"
+                  >
+                    <div className="contact__method-icon">
+                      <RiGithubLine />
+                    </div>
+                    <div>
+                      <div className="contact__method-label">GitHub Repositories</div>
+                      <div className="contact__method-val">github.com/RanaZohaik</div>
+                    </div>
+                  </a>
                 </div>
-                <ArrowUpRight size={16} className="channel-arrow" />
-              </a>
-
-              <a
-                href="https://www.linkedin.com/in/muhammad-zohaik-069553373/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="channel-card"
-              >
-                <div className="channel-icon-circle"><LinkedinIcon size={18} /></div>
-                <div>
-                  <div className="channel-name">LinkedIn</div>
-                  <div className="channel-handle">Muhammad Zohaik</div>
-                </div>
-                <ArrowUpRight size={16} className="channel-arrow" />
-              </a>
-
-              <a
-                href="https://www.instagram.com/zohaikrana/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="channel-card"
-              >
-                <div className="channel-icon-circle"><InstagramIcon size={18} /></div>
-                <div>
-                  <div className="channel-name">Instagram</div>
-                  <div className="channel-handle">@zohaikrana</div>
-                </div>
-                <ArrowUpRight size={16} className="channel-arrow" />
-              </a>
-
-              <a
-                href="mailto:zohaik.muhammad@gmail.com"
-                className="channel-card"
-              >
-                <div className="channel-icon-circle"><Mail size={18} /></div>
-                <div>
-                  <div className="channel-name">Direct Mail</div>
-                  <div className="channel-handle">Open Mail Client</div>
-                </div>
-                <ArrowUpRight size={16} className="channel-arrow" />
-              </a>
-            </div>
-
-            {/* Bottom Footer Credits */}
-            <div className="editorial-footer-bar">
-              <div className="footer-left">
-                <strong>RANA ZOHAIK</strong> — MOBILE & FULL-STACK ENGINEER
               </div>
-              <div className="footer-center">
-                LAHORE, PAKISTAN • {currentTime || "PKT UTC+5"}
-              </div>
-              <div className="footer-right">
-                <a href="#hero" className="back-to-top-btn">
-                  BACK TO APEX ↑
-                </a>
-              </div>
+
+              {/* Right Column: Direct Gmail Dispatch Form */}
+              <form className="contact__form" onSubmit={handleFormSubmit}>
+                <div className="contact__form-group">
+                  <label className="contact__form-label">Your Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. John Doe"
+                    className="contact__input"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+
+                <div className="contact__form-group">
+                  <label className="contact__form-label">Your Email</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="e.g. john@example.com"
+                    className="contact__input"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+
+                <div className="contact__form-group">
+                  <label className="contact__form-label">Project Details / Message</label>
+                  <textarea
+                    required
+                    rows={5}
+                    placeholder="Your message will be delivered directly to zohaik.muhammad@gmail.com..."
+                    className="contact__textarea"
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="button"
+                  style={{ width: "100%" }}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    "Sending to Gmail..."
+                  ) : submitStatus === "success" ? (
+                    <>
+                      <Check size={18} /> Message Sent to Gmail!
+                    </>
+                  ) : (
+                    <>
+                      Send to My Gmail <Send size={16} />
+                    </>
+                  )}
+                </button>
+              </form>
             </div>
           </div>
         </section>
       </main>
 
       {/* ============================================================
-          INTERACTIVE PROJECT CASE STUDY MODAL
+          ANIMATED LUXURY FOOTER
+          ============================================================ */}
+      <footer className="footer">
+        {/* Ambient Top Glow */}
+        <div className="footer-ambient-glow" />
+
+        {/* Large Aesthetic Watermark */}
+        <div className="footer-giant-watermark">RANA ZOHAIK</div>
+
+        <div className="container" style={{ position: "relative", zIndex: 1 }}>
+          <div className="footer__main-grid">
+            {/* Brand Block */}
+            <div className="footer__brand-block">
+              <h3 className="footer__brand-title">Rana Zohaik</h3>
+              <p className="footer__brand-desc">
+                Mobile Application Developer & Software Engineer dedicated to architecting reliable, user-focused mobile applications, POS systems, and scalable web solutions.
+              </p>
+              <div className="footer__social-links">
+                <a
+                  href="https://github.com/RanaZohaik"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="footer__social-btn"
+                  title="GitHub"
+                >
+                  <RiGithubLine />
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/rana-zohaik-069553373/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="footer__social-btn"
+                  title="LinkedIn"
+                >
+                  <RiLinkedinFill />
+                </a>
+                <a
+                  href="https://wa.me/923275716901"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="footer__social-btn"
+                  title="WhatsApp"
+                >
+                  <RiWhatsappLine />
+                </a>
+                <a
+                  href="mailto:zohaik.muhammad@gmail.com"
+                  className="footer__social-btn"
+                  title="Email"
+                >
+                  <RiMailLine />
+                </a>
+              </div>
+            </div>
+
+            {/* Quick Navigation Links */}
+            <div className="footer__nav-col">
+              <h4 className="footer__col-heading">Navigation</h4>
+              <div className="footer__nav-list">
+                <a href="#hero" className="footer__nav-item">Overview</a>
+                <a href="#about" className="footer__nav-item">About Me</a>
+                <a href="#projects" className="footer__nav-item">Featured Projects</a>
+                <a href="#work" className="footer__nav-item">Work Experience</a>
+                <a href="#contact" className="footer__nav-item">Contact Direct</a>
+              </div>
+            </div>
+
+            {/* Contact & Availability Details */}
+            <div className="footer__nav-col">
+              <h4 className="footer__col-heading">Contact & Location</h4>
+              <div className="footer__nav-list">
+                <span className="footer__nav-item">📍 Gujrat & Sialkot, PK</span>
+                <span className="footer__nav-item">✉️ zohaik.muhammad@gmail.com</span>
+                <span className="footer__nav-item">📞 +92 327 5716901</span>
+                <button
+                  onClick={() => setShowResumeModal(true)}
+                  className="footer__nav-item"
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}
+                >
+                  📄 View & Download CV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Bar: Copyright & Back to Top */}
+          <div className="footer__bottom-bar">
+            <p className="footer__copy">
+              © 2026 <span>Rana Zohaik</span>. Built with React, Framer Motion, GSAP & Lenis. All rights reserved.
+            </p>
+
+            <a href="#hero" className="footer__back-to-top">
+              Back to Top <ArrowUp size={15} />
+            </a>
+          </div>
+        </div>
+      </footer>
+
+      {/* ============================================================
+          RESUME / CV VIEWER & DOWNLOAD MODAL
+          ============================================================ */}
+      <AnimatePresence>
+        {showResumeModal && (
+          <div className="modal-overlay" onClick={() => setShowResumeModal(false)}>
+            <motion.div
+              className="modal-card"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+            >
+              <button
+                className="modal-close-btn"
+                onClick={() => setShowResumeModal(false)}
+                title="Close"
+              >
+                <X size={20} />
+              </button>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
+                <div>
+                  <h2 style={{ fontSize: "1.75rem", color: "var(--color-bone)", marginBottom: "0.25rem" }}>
+                    Rana Zohaik — Curriculum Vitae
+                  </h2>
+                  <p style={{ color: "var(--color-tobacco)", fontWeight: 600, fontSize: "0.9rem" }}>
+                    Software Engineering Graduate • Mobile & Software Developer
+                  </p>
+                </div>
+
+                {/* Instant Download Button */}
+                <div style={{ display: "flex", gap: "0.75rem" }}>
+                  <a
+                    href="/RanaZohaik_CV.pdf"
+                    download="RanaZohaik_CV.pdf"
+                    className="button"
+                    title="Direct Download PDF"
+                  >
+                    <Download size={16} /> Download CV
+                  </a>
+                  <a
+                    href="/RanaZohaik_CV.pdf"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="button button-secondary"
+                    title="Open in Full Tab"
+                  >
+                    <ExternalLink size={16} /> Full Screen
+                  </a>
+                </div>
+              </div>
+
+              {/* Embedded PDF Viewer */}
+              <div className="cv-preview-container">
+                <iframe
+                  src="/RanaZohaik_CV.pdf#toolbar=1"
+                  title="Rana Zohaik CV"
+                  className="cv-iframe"
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                  File: RanaZohaik_CV.pdf (208 KB) • Verified Document
+                </p>
+
+                <div style={{ display: "flex", gap: "0.85rem" }}>
+                  <a
+                    href="/RanaZohaik_CV.pdf"
+                    download="RanaZohaik_CV.pdf"
+                    className="button"
+                  >
+                    <Download size={15} /> Download PDF
+                  </a>
+                  <button
+                    className="button button-secondary"
+                    onClick={() => setShowResumeModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ============================================================
+          PROJECT DETAIL MODAL
           ============================================================ */}
       <AnimatePresence>
         {selectedProject && (
-          <motion.div
-            className="modal-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedProject(null)}
-          >
+          <div className="modal-overlay" onClick={() => setSelectedProject(null)}>
             <motion.div
-              className="modal-window"
-              initial={{ scale: 0.95, opacity: 0, y: 30 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              className="modal-card"
               onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
             >
-              <div className="modal-header">
-                <div>
-                  <span className="modal-edition-badge">{selectedProject.edition}</span>
-                  <h2 className="modal-title">{selectedProject.title}</h2>
-                  <div className="modal-subtitle">{selectedProject.subtitle}</div>
-                </div>
-                <button
-                  type="button"
-                  className="modal-close-icon-btn"
-                  onClick={() => setSelectedProject(null)}
-                  aria-label="Close"
+              <button
+                className="modal-close-btn"
+                onClick={() => setSelectedProject(null)}
+              >
+                <X size={20} />
+              </button>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", marginBottom: "0.75rem" }}>
+                <span style={{ fontSize: "1.8rem", fontWeight: 800, color: "var(--color-bone)" }}>
+                  {selectedProject.num}
+                </span>
+                <span
+                  style={{
+                    fontSize: "0.82rem",
+                    background: "rgba(230, 224, 214, 0.08)",
+                    border: "1px solid rgba(230, 224, 214, 0.2)",
+                    padding: "0.3rem 0.8rem",
+                    borderRadius: "20px",
+                    color: "var(--color-bone)",
+                  }}
                 >
-                  <X size={22} />
-                </button>
+                  {selectedProject.category}
+                </span>
               </div>
 
-              <div className="modal-body-scroll">
-                <div className="modal-overview-block">
-                  <h4 className="modal-section-title">// SYSTEM OVERVIEW</h4>
-                  <p className="modal-desc">{selectedProject.desc}</p>
-                </div>
-
-                <div className="modal-arch-block">
-                  <h4 className="modal-section-title">// ARCHITECTURE & PATTERN</h4>
-                  <div className="modal-arch-badge">{selectedProject.architecture}</div>
-                </div>
-
-                <div className="modal-challenges-block">
-                  <h4 className="modal-section-title">// KEY ENGINEERING ACCOMPLISHMENTS</h4>
-                  <ul className="modal-bullets-list">
-                    {selectedProject.challenges.map((c, i) => (
-                      <li key={i} className="modal-bullet-item">
-                        <span className="modal-bullet-indicator">✦</span>
-                        <span>{c}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="modal-tags-block">
-                  <h4 className="modal-section-title">// TECHNOLOGIES EMPLOYED</h4>
-                  <div className="modal-tags-row">
-                    {selectedProject.tags.map((t) => (
-                      <span key={t} className="modal-tag-pill">{t}</span>
-                    ))}
-                  </div>
-                </div>
+              <div style={{ borderRadius: "1.5rem", overflow: "hidden", marginBottom: "1.25rem", border: "1px solid var(--border-color)" }}>
+                <img
+                  src={selectedProject.thumbnail}
+                  alt={selectedProject.title}
+                  style={{ width: "100%", height: "230px", objectFit: "cover" }}
+                />
               </div>
 
-              <div className="modal-footer">
+              <h2 style={{ fontSize: "1.5rem", marginBottom: "0.6rem", color: "var(--color-bone)" }}>
+                {selectedProject.title}
+              </h2>
+
+              <p style={{ color: "var(--color-tobacco)", fontWeight: 600, fontSize: "0.88rem", marginBottom: "1.1rem" }}>
+                {selectedProject.techstack}
+              </p>
+
+              <p style={{ lineHeight: 1.7, color: "var(--text-color)", marginBottom: "1.5rem" }}>
+                {selectedProject.desc}
+              </p>
+
+              <div style={{ marginBottom: "1.75rem" }}>
+                <h4 style={{ fontSize: "0.95rem", color: "var(--color-bone)", marginBottom: "0.85rem" }}>
+                  Key Architecture & Engineering Highlights
+                </h4>
+                <ul style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                  {selectedProject.features.map((feat, idx) => (
+                    <li
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "0.6rem",
+                        fontSize: "0.88rem",
+                        color: "var(--text-color)",
+                      }}
+                    >
+                      <Check size={16} color="var(--color-bone)" style={{ flexShrink: 0, marginTop: "2px" }} />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div style={{ display: "flex", gap: "1rem" }}>
                 <a
                   href={selectedProject.githubUrl}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="modal-github-btn"
+                  rel="noreferrer"
+                  className="button"
+                  style={{ flex: 1 }}
                 >
-                  <GithubIcon size={16} /> View on GitHub
+                  <RiGithubLine size={18} /> View Repository
                 </a>
-                <a
-                  href="#contact"
-                  className="modal-inquire-btn"
+                <button
+                  className="button button-secondary"
                   onClick={() => setSelectedProject(null)}
                 >
-                  Inquire System Architecture <ArrowUpRight size={16} />
-                </a>
+                  Close
+                </button>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>
